@@ -7,12 +7,12 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
     <style>
-        body, html { 
+        body, html {
             width: 100%;
             height: 100%;
             margin: 0;
         }
-        #map { 
+        #map {
             width: 100%;
             height: 100%;
         }
@@ -23,7 +23,7 @@
 
     <script>
     if(!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
-    
+
     mapboxgl.accessToken = config.accessToken;
     var map = new mapboxgl.Map({
       container: 'map',
@@ -65,10 +65,10 @@
         }
 
         var symbols = threebox.addSymbolLayer({
-            id:             "trucks",
+            id:             "cars",
             source:         source, // You can also specify a URL or relative path such as "data/points.geojson",
-            modelName:      "Truck",    // will look for an .obj and .mtl file with this name
-            modelDirectory: "models/",          // in this directory
+            modelName:      "CarLow",    // will look for an .obj and .mtl file with this name
+            modelDirectory: "models/car/",          // in this directory
             rotation:       { generator: feature => (new THREE.Euler(Math.PI / 2, -feature.properties['headingChange'] * 10  * Math.PI / 180, -feature.properties['heading'] * Math.PI / 180, "ZYX")) },
             scale:          { property: 'size' },
             scaleWithMapProjection: true,
@@ -82,8 +82,8 @@
         const drive = (t) => {
             const dT = t - lastT;
             lastT = t;
-            const fpsFactor = Math.min(dT,1000) / 16.7 * 2;
-            
+            const fpsFactor = Math.min(dT,1000) / 16.6 * 2;
+
 
             var source = symbols.source;
             if(symbols.loaded && source) {
@@ -104,7 +104,7 @@
                 const targetAltitude = 10000000/Math.pow(2, map.transform.zoom);
                 source.features.forEach((f,i) => {
                     if(f.properties.headingChange === undefined) f.properties.headingChange = 0;
-                    
+
                     // Find neighbors (brute force search for now) and implement flocking algorithm
                     var neighbors = [];
                     source.features.forEach(f2 => {
@@ -133,10 +133,10 @@
                         ];
                     }
 
-                    
+
 
                     var centerVector = [0,0,0];
-                    if(cohere) { 
+                    if(cohere) {
                         centerVector = [
                             (map.transform.center.lng - f.geometry.coordinates[0]),
                             (map.transform.center.lat - f.geometry.coordinates[1]),
@@ -196,12 +196,12 @@
                     f.properties.headingChange = Math.max(f.properties.headingChange, -5);
                     f.properties.heading += change * fpsFactor;
 
-                    
+
 
                     forwardVector[0] *= fpsFactor;
                     forwardVector[1] *= fpsFactor;
 
-                
+
                     f.geometry.coordinates = [f.geometry.coordinates[0] + forwardVector[0], f.geometry.coordinates[1] + forwardVector[1], f.geometry.coordinates[2] + forwardVector[2]];
                 });
 

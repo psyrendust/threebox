@@ -4,15 +4,15 @@
     <script src="../dist/threebox.js" type="text/javascript"></script>
     <script src="config.js"></script>
 
-    <script src='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.0/mapbox-gl.css' rel='stylesheet' />
     <style>
-        body, html { 
+        body, html {
             width: 100%;
             height: 100%;
             margin: 0;
         }
-        #map { 
+        #map {
             width: 100%;
             height: 100%;
         }
@@ -23,11 +23,12 @@
 
     <script>
     if(!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
-    
+
     mapboxgl.accessToken = config.accessToken;
     var map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v9',
+      // style: 'mapbox://styles/mapbox/streets-v9',
+      style: 'mapbox://styles/mapbox/dark-v9',
       center: [-122.4131, 37.7743],
       zoom: 15.95,
       pitch: 60,
@@ -42,10 +43,10 @@
         threebox.setupDefaultLights();
 
         var symbols = threebox.addSymbolLayer({
-            id:             "trucks",
+            id:             "cars",
             source:         "data/points.geojson",
-            modelName:      "Truck",    // will look for an .obj and .mtl file with this name
-            modelDirectory: "models/",          // in this directory
+            modelName:      "Car",    // will look for an .obj and .mtl file with this name
+            modelDirectory: "models/car/",          // in this directory
             rotation:       { generator: feature => (new THREE.Euler(Math.PI / 2, 0, feature.properties['heading'] * Math.PI / 180 + Math.PI / 2, "ZXY")) },
             scale:          { property: 'size' },
             scaleWithMapProjection: true,
@@ -70,7 +71,7 @@
                 'circle-opacity': 0.5
             }
         });
-        
+
     });
     </script>
 </body>
