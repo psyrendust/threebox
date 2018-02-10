@@ -1,2 +1,4 @@
-window.Threebox = require('./src/Threebox'),
-window.THREE = require('./src/three64.js')
+window.THREE = require('three');
+require('three/examples/js/loaders/OBJLoader');
+require('three/examples/js/loaders/MTLLoader');
+window.Threebox = require('./src/Threebox');
