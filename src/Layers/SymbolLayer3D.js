@@ -1,11 +1,5 @@
-const THREE = require('three');    // Modified version to use 64-bit double precision floats for matrix math
-// const ThreeboxConstants = require('../constants.js');
-// const utils = require('../Utils/Utils.js');
-const ValueGenerator = require('../Utils/ValueGenerator');
-// const OBJLoader = require('three/examples/js/loaders/OBJLoader');
-// const MTLLoader = require('three/examples/js/loaders/MTLLoader');
-
-console.log(THREE); // eslint-disable-line
+import THREE from '../three';
+import valueGenerator from '../Utils/valueGenerator';
 
 function SymbolLayer3D(parent, options) {
   if (options === undefined) {
@@ -27,13 +21,13 @@ function SymbolLayer3D(parent, options) {
   this.parent = parent;
 
   this.id = options.id;
-  this.keyGen = ValueGenerator(options.key);
+  this.keyGen = valueGenerator(options.key);
   if (typeof options.source === 'string') { this.sourcePath = options.source; } else { this.source = options.source; }
 
-  this.modelDirectoryGen = ValueGenerator(options.modelDirectory);
-  this.modelNameGen = ValueGenerator(options.modelName);
-  this.rotationGen = ValueGenerator(options.rotation);
-  this.scaleGen = ValueGenerator(options.scale);
+  this.modelDirectoryGen = valueGenerator(options.modelDirectory);
+  this.modelNameGen = valueGenerator(options.modelName);
+  this.rotationGen = valueGenerator(options.rotation);
+  this.scaleGen = valueGenerator(options.scale);
   this.models = Object.create(null);
   this.features = Object.create(null);
   this.scaleWithMapProjection = options.scaleWithMapProjection;

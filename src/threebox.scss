@@ -1,0 +1,14 @@
+.mapboxgl-control-container {
+    .mapboxgl-ctrl-top-left,
+    .mapboxgl-ctrl-top-right,
+    .mapboxgl-ctrl-bottom-left,
+    .mapboxgl-ctrl-bottom-right {
+    z-index: 3;
+    }
+}
+
+.threebox-canvas {
+  position: relative;
+  pointer-events: none;
+  z-index: 2;
+}

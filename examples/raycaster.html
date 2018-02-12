@@ -1,36 +1,51 @@
 <!doctype html>
 <head>
-    <title>Threebox example</title>
-    <script src="../dist/threebox.js" type="text/javascript"></script>
-
-    <script src='https://api.mapbox.com/mapbox-gl-js/v0.29.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v0.29.0/mapbox-gl.css' rel='stylesheet' />
+    <title>three.js | MapBox GL | Raycaster example</title>
+    <link href='//api.mapbox.com/mapbox-gl-js/v0.29.0/mapbox-gl.css' rel='stylesheet' />
+    <link href='./dist/threebox.css' rel='stylesheet' />
+    <link href='./main.css' rel='stylesheet' />
     <style>
-        body, html { 
-            width: 100%;
-            height: 100%;
-            margin: 0;
-        }
-        #map { 
+        #container {
+            /* position: absolute; */
+            /* width: 800px; */
+            /* height: 400px; */
+            /* margin: 100px; */
+            /* padding: 100px; */
+            /* overflow: visible; */
             width: 100%;
             height: 100%;
         }
     </style>
 </head>
 <body>
-    <div id='map' class='map'></div>
+    <div id="info">
+        <a href="./index.html">Home</a>
+    </div>
+    <div id='container'>
+        <div id='map' class='map'></div>
+    </div>
+    <script src="./config.js" type="text/javascript"></script>
+    <script src="//threejs.org/examples/js/libs/stats.min.js"></script>
+    <script src='//api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.js' type="text/javascript"></script>
+    <script src='//cdn.jsdelivr.net/npm/three@0.89.0/build/three.min.js' type="text/javascript"></script>
+    <script src='//cdn.jsdelivr.net/npm/three@0.89.0/examples/js/loaders/OBJLoader.js' type='text/javascript'></script>
+    <script src='//cdn.jsdelivr.net/npm/three@0.89.0/examples/js/loaders/MTLLoader.js' type='text/javascript'></script>
+    <script src="//cdn.jsdelivr.net/npm/dat.gui@0.7.0/build/dat.gui.min.js" type="text/javascript"></script>
+    <script src="./dist/threebox.js" type="text/javascript"></script>
 
     <script>
-    mapboxgl.accessToken = 'pk.eyJ1Ijoia3JvbmljayIsImEiOiJjaWxyZGZwcHQwOHRidWxrbnd0OTB0cDBzIn0.u2R3NY5PnevWH3cHRk6TWQ';
+    if (!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
+
+    mapboxgl.accessToken = config.accessToken;
     var map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/streets-v9',
-      center: [-122.8170, 37.7894],
-      zoom: 8.55,
-      pitch: 60,
-      heading: 41,
-      hash: true
+        container: 'map',
+        style: 'mapbox://styles/mapbox/dark-v9',
+        center: [-122.4324, 37.7513],
+        zoom: 11.67,
+        pitch: 60,
+        hash: true
     });
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     var highlighted = [];
 
@@ -40,43 +55,65 @@
         threebox.setupDefaultLights();
 
         // initialize geometry and material of our cube object
-        var geometry = new THREE.BoxGeometry(2000, 2000, 2000);
-        var greenMaterial = new THREE.MeshPhongMaterial( {color: 0xaaffaa, side: THREE.DoubleSide});
-        var redMaterial = new THREE.MeshPhongMaterial( {color: 0xffaaaa, side: THREE.DoubleSide});
+        var geometry = new THREE.BoxGeometry(2000, 2000, 2000, 3, 3, 3);
+        var material = new THREE.MeshPhongMaterial({
+            color: 0xb80b8c,
+            specular: 0xb80b8c,
+            side: THREE.DoubleSide,
+            // flatShading: true,
 
-        cube = new THREE.Mesh(geometry, redMaterial);
-        cube.userData.name = "Red cube";
-        threebox.addAtCoordinate(cube, [-122.4340, 37.7353, 2500], {preScale: 1});
-        
+            specular: 0xffffff,
+            shininess: 30,
+            morphTargets: true,
+            vertexColors: THREE.FaceColors,
+        });
+        var hoverMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff00bf,
+            emissive: 0x000000,
+            side: THREE.DoubleSide,
+            flatShading: true
+        });
+        var lineMaterial = new THREE.LineBasicMaterial({color: 0xffffff});
+        lineMaterial.depthTest = true;
 
-        //add mousing interactions
+        var mesh = new THREE.Object3D();
+        mesh.userData.name = "Cube";
+        mesh.rotation.z -= 20;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        var wireframe = new THREE.WireframeGeometry(geometry);
+        var line = new THREE.LineSegments(wireframe, lineMaterial);
+        mesh.add(line);
+
+        var box = new THREE.Mesh(geometry, material);
+        mesh.add(box);
+
+        threebox.addAtCoordinate(mesh, [-122.4340, 37.7353, 1000], {preScale: 1});
+
+        var hitObjects = [box];
+
+        // add mousing interactions
         map.on('mousemove', function(e){
-
-            raycaster = new THREE.Raycaster();
-            var mouse = new THREE.Vector2();
-
             // Clear old objects
             highlighted.forEach(function(h) {
-                h.material = redMaterial;
+                h.material = material;
             });
             highlighted.length = 0;
 
-            // scale mouse pixel position to a percentage of the screen's width and height
-            mouse.x = ( e.point.x / threebox.map.transform.width ) * 2 - 1;
-            mouse.y = -( ( e.point.y) / threebox.map.transform.height ) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, threebox.camera);
-
             // calculate objects intersecting the picking ray
-            var intersects = raycaster.intersectObjects(threebox.world.children, true);
+            var intersects = threebox.getIntersectsFromMapPoint(e.point, true, hitObjects);
             if (!intersects[0]) return
             var nearestObject = intersects[0].object;
-            console.log(nearestObject);
-            nearestObject.material = greenMaterial;
-            highlighted.push(nearestObject)
-            
+            nearestObject.material = hoverMaterial;
+            highlighted.push(nearestObject);
         });
 
+        var stats = new Stats();
+        document.body.appendChild(stats.dom);
+        threebox.onAfterRender(function () {
+            stats.update();
+        });
     });
 
     </script>

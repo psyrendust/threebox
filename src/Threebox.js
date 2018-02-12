@@ -1,7 +1,10 @@
-const THREE = require('three');
-const ThreeboxConstants = require('./constants');
-const CameraSync = require('./Camera/CameraSync');
-const SymbolLayer3D = require('./Layers/SymbolLayer3D');
+import THREE from './three';
+import ThreeboxConstants from './constants';
+import CameraSync from './Camera/CameraSync';
+import SymbolLayer3D from './Layers/SymbolLayer3D';
+import RAF from './utils/RAF';
+
+require('./threebox.scss');
 
 function Threebox(map) {
   this.map = map;
@@ -12,9 +15,7 @@ function Threebox(map) {
   this.renderer.shadowMap.enabled = true;
 
   this.map._container.appendChild(this.renderer.domElement);
-  this.renderer.domElement.style.position = 'relative';
-  this.renderer.domElement.style['pointer-events'] = 'none';
-  this.renderer.domElement.style['z-index'] = 1000;
+  this.renderer.domElement.classList.add('threebox-canvas');
     // this.renderer.domElement.style["transform"] = "scale(1,-1)";
 
   const _this = this;
@@ -24,6 +25,8 @@ function Threebox(map) {
   this.scene = new THREE.Scene();
   this.camera = new THREE.PerspectiveCamera(28, window.innerWidth / window.innerHeight, 0.000001, 5000000000);
   this.layers = [];
+  this.mouse = new THREE.Vector2();
+  this.raycaster = new THREE.Raycaster();
 
     // The CameraSync object will keep the Mapbox and THREE.js camera movements in sync.
     // It requires a world group to scale as we zoom in. Rotation is handled in the camera's
@@ -33,23 +36,48 @@ function Threebox(map) {
   this.scene.add(this.world);
   this.cameraSynchronizer = new CameraSync(this.map, this.camera, this.world);
 
-    // this.animationManager = new AnimationManager();
-  this.update();
+  this.raf = new RAF(this.renderer, this.scene, this.camera);
+  this.raf.start();
 }
 
 Threebox.prototype = {
   SymbolLayer3D,
 
-  update(timestamp) {
-        // Update any animations
-        // this.animationManager.update(timestamp);
+  start() {
+    this.raf.start();
+  },
+  step() {
+    this.raf.step();
+  },
+  stop() {
+    this.raf.stop();
+  },
+  onUpdate(fn, scope) {
+    this.raf.onUpdate(fn, scope);
+  },
+  onAfterUpdate(fn, scope) {
+    this.raf.onAfterUpdate(fn, scope);
+  },
+  onRender(fn, scope) {
+    this.raf.onUpdate(fn, scope);
+  },
+  onAfterRender(fn, scope) {
+    this.raf.onAfterUpdate(fn, scope);
+  },
 
-        // Render the scene
-    this.renderer.render(this.scene, this.camera);
+  getMousePositionFromMapPoint(point) {
+    this.mouse.x = (point.x / this.map.transform.width) * 2 - 1;
+    this.mouse.y = -((point.y) / this.map.transform.height) * 2 + 1;
+    return this.mouse.clone();
+  },
 
-        // Run this again next frame
-    const thisthis = this;
-    requestAnimationFrame((ts) => { thisthis.update(ts); });
+  getIntersects(point, recursive, objects) {
+    this.raycaster.setFromCamera(point, this.camera);
+    return this.raycaster.intersectObjects(objects || this.world.children, recursive);
+  },
+
+  getIntersectsFromMapPoint(point, recursive, objects) {
+    return this.getIntersects(this.getMousePositionFromMapPoint(point), recursive, objects);
   },
 
   projectToWorld(coords) {
@@ -185,33 +213,83 @@ Threebox.prototype = {
     return null;
   },
 
+  add(obj) {
+    this.world.add(obj);
+  },
+
   remove(obj) {
     this.world.remove(obj);
   },
 
   setupDefaultLights() {
-    this.scene.add(new THREE.AmbientLight(0xCCCCCC));
+    this.scene.add(new THREE.AmbientLight(0x404040));
+
+    // Taken from https://threejs.org/examples/webgl_lights_hemisphere.html
+    // LIGHTS
+    // HemisphereLight does not cast shadows
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
+    hemiLight.color.setHSL(0.6, 1, 0.6);
+    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+    hemiLight.position.set(0, 800, 3000);
+    this.scene.add(hemiLight);
 
     const sunlight = new THREE.DirectionalLight(0xffffff, 0.5);
     sunlight.position.set(0, 800, 1000);
     sunlight.matrixWorldNeedsUpdate = true;
     this.world.add(sunlight);
-        // this.world.add(sunlight.target);
 
-        // var lights = [];
-        // lights[ 0 ] = new THREE.PointLight( 0x999999, 1, 0 );
-        // lights[ 1 ] = new THREE.PointLight( 0x999999, 1, 0 );
-        // lights[ 2 ] = new THREE.PointLight( 0x999999, 0.2, 0 );
+    // const lights = [];
+    // lights[0] = new THREE.PointLight(0x999999, 1, 0);
+    // lights[1] = new THREE.PointLight(0x999999, 1, 0);
+    // lights[2] = new THREE.PointLight(0x999999, 0.2, 0);
 
-        // lights[ 0 ].position.set( 0, 200, 1000 );
-        // lights[ 1 ].position.set( 100, 200, 1000 );
-        // lights[ 2 ].position.set( -100, -200, 0 );
+    // // lights[0].position.set(0, 200, 1000);
+    // lights[1].position.set(-2000, -2000, 2000);
+    // lights[2].position.set(2000, 2000, 2000);
 
-        // //scene.add( lights[ 0 ] );
-        // this.scene.add( lights[ 1 ] );
-        // this.scene.add( lights[ 2 ] );
+    // // // this.scene.add(lights[0]);
+    // // this.scene.add(lights[1]);
+    // this.scene.add(lights[2]);
+  },
+
+  setupHemisphereLights() {
+    // Taken from https://threejs.org/examples/webgl_lights_hemisphere.html
+    // LIGHTS
+    // HemisphereLight does not cast shadows
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
+    hemiLight.color.setHSL(0.6, 1, 0.6);
+    hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+    hemiLight.position.set(0, 800, 3000);
+
+    // Used to cast shadows
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.color.setHSL(0.1, 1, 0.95);
+    dirLight.position.set(-1, 1.75, 1);
+    dirLight.position.multiplyScalar(30);
+
+    dirLight.castShadow = true;
+
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+
+    const d = 50;
+
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.camera.far = 3500;
+    dirLight.shadow.bias = -0.0001;
+
+
+    this.scene.add(hemiLight);
+    this.scene.add(dirLight);
+
+    this.hemiLight = hemiLight;
+    this.dirLight = dirLight;
   },
 };
 
+window.Threebox = Threebox;
 module.exports = Threebox;
 

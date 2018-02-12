@@ -1,6 +1,6 @@
-const THREE = require('three');    // Modified version to use 64-bit double precision floats for matrix math
+import THREE from '../three';
 
-function prettyPrintMatrix(uglymatrix) {
+export function prettyPrintMatrix(uglymatrix) {
   for (let s = 0; s < 4; s += 1) {
     const quartet = [uglymatrix[s],
       uglymatrix[s + 4],
@@ -10,7 +10,7 @@ function prettyPrintMatrix(uglymatrix) {
   }
 }
 
-function makePerspectiveMatrix(fovy, aspect, near, far) {
+export function makePerspectiveMatrix(fovy, aspect, near, far) {
   const out = new THREE.Matrix4();
   const f = 1.0 / Math.tan(fovy / 2);
   const nf = 1 / (near - far);
@@ -34,7 +34,7 @@ function makePerspectiveMatrix(fovy, aspect, near, far) {
 }
 
 // gimme radians
-function radify(deg) {
+export function radify(deg) {
   if (typeof deg === 'object') {
     return deg.map((degree) => {
       return Math.PI * 2 * degree / 360;
@@ -45,11 +45,6 @@ function radify(deg) {
 }
 
 // gimme degrees
-function degreeify(rad) {
+export function degreeify(rad) {
   return 360 * rad / (Math.PI * 2);
 }
-
-module.exports.prettyPrintMatrix = prettyPrintMatrix;
-module.exports.makePerspectiveMatrix = makePerspectiveMatrix;
-module.exports.radify = radify;
-module.exports.degreeify = degreeify;

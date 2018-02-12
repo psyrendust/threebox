@@ -1,7 +1,6 @@
-// const THREE = require('../three64');
-const THREE = require('three');
-const utils = require('../Utils');
-const ThreeboxConstants = require('../constants');
+import THREE from '../three';
+import * as utils from '../utils';
+import ThreeboxConstants from '../constants';
 
 function CameraSync(map, camera, world) {
   this.map = map;
