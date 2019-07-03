@@ -15,8 +15,8 @@ module.exports = {
 
     module: {
         rules: [
-      // First, run the linter.
-      // It's important to do this before Babel processes the JS.
+            // First, run the linter.
+            // It's important to do this before Babel processes the JS.
             {
                 test: /\.(js)$/,
                 enforce: 'pre',
@@ -36,11 +36,11 @@ module.exports = {
                 ],
             },
             {
-        // "oneOf" will traverse all following loaders until one will
-        // match the requirements. When no loader matches it will fall
-        // back to the "file" loader at the end of the loader list.
+                // "oneOf" will traverse all following loaders until one will
+                // match the requirements. When no loader matches it will fall
+                // back to the "file" loader at the end of the loader list.
                 oneOf: [
-          // rule for .js files
+                    // rule for .js files
                     {
                         test: /\.(js)$/,
                         include: [
@@ -54,7 +54,7 @@ module.exports = {
                             loader: 'babel-loader',
                         },
                     },
-          // rule for .css files
+                    // rule for .css files
                     {
                         test: /\.css$/,
                         include: [
@@ -64,7 +64,7 @@ module.exports = {
                         ],
                         use: ['style-loader', 'css-loader'],
                     },
-          // rule for .scss files
+                    // rule for .scss files
                     {
                         test: /\.(sass|scss)$/,
                         include: [
@@ -74,7 +74,7 @@ module.exports = {
                         ],
                         use: ExtractTextPlugin.extract({ fallback: 'style-loader', use: ['css-loader', 'sass-loader'] }),
                     },
-          // rule for .glsl files (shaders)
+                    // rule for .glsl files (shaders)
                     {
                         test: /\.glsl$/,
                         use: [

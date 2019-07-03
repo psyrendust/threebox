@@ -1,10 +1,12 @@
 <!doctype html>
+
 <head>
     <title>three.js | MapBox GL | SymbolLayer3D example</title>
     <link href='//api.tiles.mapbox.com/mapbox-gl-js/v0.44.0/mapbox-gl.css' rel='stylesheet' />
     <link href='./dist/threebox.css' rel='stylesheet' />
     <link href='./main.css' rel='stylesheet' />
 </head>
+
 <body>
     <div id="info">
         <a href="./index.html">Home</a>
@@ -19,62 +21,62 @@
     <script src="//cdn.jsdelivr.net/npm/dat.gui@0.7.0/build/dat.gui.min.js" type="text/javascript"></script>
     <script src="./dist/threebox.js" type="text/javascript"></script>
     <script>
-    if(!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
+        if (!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
 
-    mapboxgl.accessToken = config.accessToken;
-    var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/dark-v9',
-        center: [-122.4399, 37.78391],
-        zoom: 14,
-        pitch: 60,
-        bearing: 0,
-        hash: true,
-        renderWorldCopies: false,
-        maxZoom: 24
-    });
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    map.on("load", function () {
-        // Initialize threebox
-        window.threebox = new Threebox(map);
-        threebox.setupDefaultLights();
-
-        var symbols = threebox.addSymbolLayer({
-            id:             "cars",
-            source:         "./data/points.geojson",
-            modelName:      "Car",    // will look for an .obj and .mtl file with this name
-            modelDirectory: "./models/car/",          // in this directory
-            rotation:       { generator: feature => (new THREE.Euler(Math.PI / 2, 0, feature.properties['heading'] * Math.PI / 180 + Math.PI / 2, "ZXY")) },
-            scale:          { property: 'size' },
-            scaleWithMapProjection: true,
-            key:            { property: "id" }
+        mapboxgl.accessToken = config.accessToken;
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v9',
+            center: [ -122.4399, 37.78391 ],
+            zoom: 14,
+            pitch: 60,
+            bearing: 0,
+            hash: true,
+            renderWorldCopies: false,
+            maxZoom: 24
         });
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-        // That's all you need to add a static 3D sybmol layer!
+        map.on("load", function () {
+            // Initialize threebox
+            window.threebox = new Threebox(map);
+            threebox.setupDefaultLights();
 
-        // Add a native Mapbox GL JS circle layer to highlight each truck location
-        map.addLayer({
-            id: 'truck-circles',
-            type: 'circle',
-            source: {
-                type: 'geojson',
-                data: "data/points.geojson"
-            },
-            paint: {
-                'circle-radius': {
-                    stops: [[12,10], [22,200]]
+            var symbols = threebox.addSymbolLayer({
+                id: "cars",
+                source: "./data/points.geojson",
+                modelName: "Car",    // will look for an .obj and .mtl file with this name
+                modelDirectory: "./models/car/",          // in this directory
+                rotation: { generator: feature => (new THREE.Euler(Math.PI / 2, 0, feature.properties[ 'heading' ] * Math.PI / 180 + Math.PI / 2, "ZXY")) },
+                scale: { property: 'size' },
+                scaleWithMapProjection: true,
+                key: { property: "id" }
+            });
+
+            // That's all you need to add a static 3D sybmol layer!
+
+            // Add a native Mapbox GL JS circle layer to highlight each truck location
+            map.addLayer({
+                id: 'truck-circles',
+                type: 'circle',
+                source: {
+                    type: 'geojson',
+                    data: "data/points.geojson"
                 },
-                'circle-color': "#ffffff",
-                'circle-opacity': 0.5
-            }
-        });
+                paint: {
+                    'circle-radius': {
+                        stops: [ [ 12, 10 ], [ 22, 200 ] ]
+                    },
+                    'circle-color': "#ffffff",
+                    'circle-opacity': 0.5
+                }
+            });
 
-        var stats = new Stats();
-        document.body.appendChild(stats.dom);
-        threebox.onAfterRender(function () {
-            stats.update();
+            var stats = new Stats();
+            document.body.appendChild(stats.dom);
+            threebox.onAfterRender(function () {
+                stats.update();
+            });
         });
-    });
     </script>
 </body>

@@ -1,15 +1,17 @@
 <!doctype html>
+
 <head>
     <title>three.js | MapBox GL | Basic Example</title>
     <link href='//api.mapbox.com/mapbox-gl-js/v0.34.0/mapbox-gl.css' rel='stylesheet' />
     <link href='./dist/threebox.css' rel='stylesheet' />
     <link href='./main.css' rel='stylesheet' />
-  </head>
-  <body>
+</head>
+
+<body>
 
     <div id='map' class='map'></div>
     <div id="info">
-      <a href="./index.html">Home</a>
+        <a href="./index.html">Home</a>
     </div>
     <script src="./config.js" type="text/javascript"></script>
     <script src="//threejs.org/examples/js/libs/stats.min.js"></script>
@@ -20,43 +22,42 @@
     <script src="//cdn.jsdelivr.net/npm/dat.gui@0.7.0/build/dat.gui.min.js" type="text/javascript"></script>
     <script src="./dist/threebox.js" type="text/javascript"></script>
     <script>
-    if(!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
+        if (!config) console.error("Config not set! Make a copy of 'config_template.js', add in your access token, and save the file as 'config.js'.");
 
-    mapboxgl.accessToken = config.accessToken;
-    var map = new mapboxgl.Map({
-      container: 'map',
-      style: 'mapbox://styles/mapbox/dark-v9',
-      center: [-122.4135, 37.7768],
-      zoom: 15.95,
-      pitch: 60,
-      renderWorldCopies: false,
-      hash: true
-    });
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    map.on("load", function() {
-        // Initialize threebox
-        window.threebox = new Threebox(map);
-        threebox.setupDefaultLights();
-
-
-        // Load and manipulate a THREE.js scenegraph as you would normally
-        loader = new THREE.JSONLoader();
-
-        loader.load("./models/boeing747-400-jw.json", function(geometry) {
-            geometry.rotateY((90/360)*2*Math.PI);
-            geometry.rotateX((90/360)*2*Math.PI);
-
-            var material = new THREE.MeshPhongMaterial( {color: 0xaaaaff, side: THREE.DoubleSide});
-            aircraft = new THREE.Mesh( geometry, material );
-            var planePosition = [-122.41356, 37.77577 ,100];
-
-            // Add the model to the threebox scenegraph at a specific geographic coordinate
-            threebox.addAtCoordinate(aircraft, planePosition, {scaleToLatitude: true, preScale: 2});
+        mapboxgl.accessToken = config.accessToken;
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/dark-v9',
+            center: [ -122.4135, 37.7768 ],
+            zoom: 15.95,
+            pitch: 60,
+            renderWorldCopies: false,
+            hash: true
         });
+        map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    });
+        map.on("load", function () {
+            // Initialize threebox
+            window.threebox = new Threebox(map);
+            threebox.setupDefaultLights();
 
+
+            // Load and manipulate a THREE.js scenegraph as you would normally
+            loader = new THREE.JSONLoader();
+
+            loader.load("./models/boeing747-400-jw.json", function (geometry) {
+                geometry.rotateY((90 / 360) * 2 * Math.PI);
+                geometry.rotateX((90 / 360) * 2 * Math.PI);
+
+                var material = new THREE.MeshPhongMaterial({ color: 0xaaaaff, side: THREE.DoubleSide });
+                aircraft = new THREE.Mesh(geometry, material);
+                var planePosition = [ -122.41356, 37.77577, 100 ];
+
+                // Add the model to the threebox scenegraph at a specific geographic coordinate
+                threebox.addAtCoordinate(aircraft, planePosition, { scaleToLatitude: true, preScale: 2 });
+            });
+
+        });
 
     </script>
 </body>
