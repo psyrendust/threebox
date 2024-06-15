@@ -25,7 +25,7 @@
     "@turf/turf": "^5.1.6",
     "tape": "^4.10.1",
     "turf": "^3.0.14",
-    "watchify": "^3.11.1",
+    "watchify": "^4.0.0",
     "uglifyify": "5.0.1"
   }
 }
